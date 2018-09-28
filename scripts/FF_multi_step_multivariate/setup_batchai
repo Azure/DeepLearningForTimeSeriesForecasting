@@ -1,0 +1,99 @@
+#!/bin/bash	
+
+if [[ "$#" -ne 6 ]]; then
+    echo "Usage: setup_batchai -s <subscription_id> -r <region_name> -g <group_name>"
+    exit
+fi
+
+SUBSCRIPTION_ID=$2
+REGION=$4
+BATCHAI_RG=$6
+
+BATCHAI_SA=${BATCHAI_RG}sa
+BATCHAI_WS=${BATCHAI_RG}ws
+BATCHAI_CLUST=${BATCHAI_RG}clust
+BATCHAI_EXP=${BATCHAI_RG}exp
+
+echo "Creating resource group..."
+az group create -l ${REGION} -n ${BATCHAI_RG}
+
+echo "Setting up access to Batch AI..."
+secret_key="rnntutorial"
+az ad app create --display-name ${BATCHAI_RG} --homepage https://www.${BATCHAI_RG}.com --identifier-uris www.${BATCHAI_RG}.com --password $secret_key --end-date "2099-01-01"
+
+# get client id
+client_id=`az ad app list --display-name ${BATCHAI_RG} | jq -r '.[]' | jq -r '.appId'`
+
+# get object id of service principal of active directory app
+sp_object_id=`az ad sp create --id $client_id | jq -r '.objectId'`
+
+# get tenant id
+tenant_id=`az account show -s ${SUBSCRIPTION_ID} | jq -r '.tenantId'`
+
+echo "Creating fileshare storage..."
+az storage account create -n ${BATCHAI_SA} --sku Standard_LRS -g ${BATCHAI_RG}
+az storage share create -n logs --account-name ${BATCHAI_SA}
+az storage share create -n resources --account-name ${BATCHAI_SA}
+az storage share create -n output --account-name ${BATCHAI_SA}
+
+echo "Uploading dataset..."
+python -c "import sys; sys.path.append('../../'); from common.extract_data import *; extract_data('.') "
+az storage directory create -n data -s resources --account-name ${BATCHAI_SA}
+az storage file upload -s resources --source energy.csv --path data --account-name ${BATCHAI_SA}
+
+echo "Uploading Batch AI utilities..."
+az storage directory create -n scripts -s resources --account-name ${BATCHAI_SA}
+az storage directory create -n scripts/common -s resources --account-name ${BATCHAI_SA}
+az storage file upload -s resources --source ../../common/extract_data.py --path scripts/common --account-name ${BATCHAI_SA}
+az storage file upload -s resources --source ../../common/utils.py --path scripts/common --account-name ${BATCHAI_SA}
+
+echo "Uploading training code..."
+az storage file upload -s resources --source FF_multi_step_multivariate.py --path scripts --account-name ${BATCHAI_SA}
+
+echo "Creating Batch AI workspace..."
+az batchai workspace create -l ${REGION} -g ${BATCHAI_RG} -n ${BATCHAI_WS}
+
+echo "Creating Batch AI cluster..."
+az batchai cluster create -g ${BATCHAI_RG} -w ${BATCHAI_WS} -n ${BATCHAI_CLUST} --user "rnntutorial" --password "aiconf2018!" --image UbuntuLTS --vm-size Standard_NC6 --max 10 --min 1 --storage-account-name ${BATCHAI_SA}
+
+echo "Creating Batch AI experiment..."
+az batchai experiment create -n ${BATCHAI_EXP} -g ${BATCHAI_RG} -w ${BATCHAI_WS}
+
+echo "Installing JSON stream processor..."
+sudo apt install jq
+
+echo "Downloading Batch AI utilities..."
+git clone https://github.com/Azure/BatchAI
+utils_dir=BatchAI
+
+# get storage key
+storage_key=`az storage account keys list --account-name ${BATCHAI_SA} | jq -r '.[]' | jq -r '.value' | head -1`
+
+# add active directory app to resource group
+az role assignment create --role "Contributor" --assignee-object-id $sp_object_id --resource-group ${BATCHAI_RG}
+
+echo "Creating configuration file..."
+cat <<EOF > configuration.json
+{
+    "subscription_id": "$SUBSCRIPTION_ID",
+    "resource_group": "$BATCHAI_RG",
+    "active_directory": {
+        "tenant_id": "$tenant_id",
+        "client_id": "$client_id",
+        "client_secret": "$secret_key"
+    },
+    "storage_account": {
+        "name": "$BATCHAI_SA",
+        "key": "$storage_key"
+    },
+    "batch_ai": {
+        "workspace": "$BATCHAI_WS",
+        "experiment": "$BATCHAI_EXP",
+        "cluster_name": "$BATCHAI_CLUST",
+        "job_name_prefix": "tune_ffnn"
+    },
+    "utils_dir": "$utils_dir",
+    "docker_image": "angusrtaylor/rnntutorial"
+}
+EOF
+

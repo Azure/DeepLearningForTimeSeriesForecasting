@@ -1,0 +1,14 @@
+name: rnntutorial
+channels:
+- defaults
+dependencies:
+- keras=2.0.8
+- numpy=1.11.3
+- pandas=0.19.2
+- python=3.5.4
+- tensorflow=1.1.0
+- matplotlib=2.1.1
+- scikit-learn=0.19.1
+- statsmodels=0.6.1
+- pip:
+  - ipykernel
