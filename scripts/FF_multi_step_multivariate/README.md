@@ -12,6 +12,7 @@ within 24 hours. When running with a cluster of 8 VMs of NC6 size, the experimen
 
 To clean up a resource group containing all provisioned Azure services, run
 ```bash
-az group delete -n <resource-group-name>
+az group delete -n <resource-group-name>     
+az ad app delete --id www.<resource-group-name>.com
 ```
 
