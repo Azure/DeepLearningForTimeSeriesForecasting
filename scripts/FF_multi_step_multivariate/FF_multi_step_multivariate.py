@@ -14,14 +14,13 @@ import numpy as np
 import pandas as pd
 import datetime as dt
 from glob import glob
-from itertools import product
 from argparse import ArgumentParser
 from sklearn.preprocessing import MinMaxScaler
 from keras.models import Sequential
 from keras.layers import Dense
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.optimizers import RMSprop
-from keras import losses, regularizers
+from keras import regularizers
 
 sys.stdout = sys.stderr
 pd.options.display.float_format = '{:,.2f}'.format
@@ -91,7 +90,7 @@ def run(energy, T_val, LATENT_DIM, BATCH_SIZE, LEARNING_RATE, ALPHA, HIDDEN_LAYE
     f = open(out_file, 'w')
     for ii in range(N_EXPERIMENTS):
         # Initialize the model
-        model = get_model(BATCH_SIZE, LEARNING_RATE, T_val, ALPHA, HIDDEN_LAYERS)
+        model = get_model(LATENT_DIM, LEARNING_RATE, T_val, ALPHA, HIDDEN_LAYERS)
         earlystop = EarlyStopping(monitor='val_loss', min_delta=0, patience=5)
         best_val = ModelCheckpoint('model_{epoch:02d}.h5', save_best_only=True, mode='min', period=1, save_weights_only=True)
 
