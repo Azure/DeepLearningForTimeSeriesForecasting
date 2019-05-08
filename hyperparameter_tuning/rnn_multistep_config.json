@@ -1,23 +1,23 @@
 {
-    "EXPERIMENT_NAME":"ff-multistep",
+    "EXPERIMENT_NAME":"rnn-multistep",
     "CLUSTER_NAME":"gpucluster",
-    "SCRIPT_DIR":"./FF_multi_step_multivariate",
-    "SCRIPT_NAME":"FF_multi_step_multivariate.py",
+    "SCRIPT_DIR":"./RNN_multi_step_vector_output",
+    "SCRIPT_NAME":"RNN_multi_step_vector_output.py",
     "SCRIPT_PARAMS":{
-        "--latent-dim": 5,
-        "--hidden-layers": 2,
-        "--batch-size": 16,
+        "--latent-dim-1": 5,
+        "--latent-dim-2": 0,
+        "--batch-size": 32,
         "--T": 72,
         "--learning-rate": 0.01,
-        "--alpha": 0.1
+        "--alpha": 0
     },
     "HYPER_PARAMS":{
-        "--latent-dim": [5,10,15],
-        "--hidden-layers": [1,2,3],
+        "--latent-dim-1": [5,10,15],
+        "--latent-dim-2": [0,5,10],
         "--batch-size": [8,16,32],
         "--T": [72,168,336],
         "--learning-rate": [0.01, 0.001, 0.0001],
         "--alpha": [0.1,0.001,0]
     },
-    "MODEL_NAME":"ff-multistep-best"
+    "MODEL_NAME":"rnn-multistep-best"
 }
