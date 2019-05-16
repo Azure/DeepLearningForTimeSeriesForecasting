@@ -35,8 +35,8 @@ test_start_dt = "2014-11-01 00:00:00"
 EPOCHS = 50  # max number of epochs when training FNN
 HORIZON = 24  # forecasting horizon (in hours)
 
+# Get the run object
 run = Run.get_context()
-
 
 class LogRunMetrics(Callback):
     # callback at the end of every epoch
@@ -175,7 +175,7 @@ def run_training(energy, T_val, LATENT_DIM, BATCH_SIZE, LEARNING_RATE, ALPHA, HI
     for m in glob("model_*.h5"):
         os.remove(m)
 
-    # Log average validation and test MAPEs
+    # Log validation loss and test MAPE
     run.log("validationLoss", validationLoss)
     run.log("testMAPE", testMAPE)
 

@@ -10,7 +10,7 @@ from argparse import ArgumentParser
 from keras import regularizers
 from keras.models import Model, Sequential
 from keras.layers import Dense, CuDNNGRU, RepeatVector, TimeDistributed, Flatten, Input
-from keras.callbacks import EarlyStopping, ModelCheckpoint
+from keras.callbacks import EarlyStopping, ModelCheckpoint, Callback
 from keras.optimizers import RMSprop
 
 from azureml.core import Run
@@ -22,7 +22,16 @@ test_start_dt = "2014-11-01 00:00:00"
 # fixed parameters
 EPOCHS = 100  # max number of epochs when training FNN
 HORIZON = 24  # forecasting horizon (in hours)
-N_EXPERIMENTS = 1  # number of experiments for each combination of hyperparameter values
+
+# Get the run object
+run = Run.get_context()
+
+class LogRunMetrics(Callback):
+    # callback at the end of every epoch
+    def on_epoch_end(self, epoch, log):
+        # log a value repeated which creates a list
+        run.log('Loss', log['loss'])
+
 
 # create training, validation and test sets given the length of the history
 def create_input(energy, T):
@@ -159,94 +168,81 @@ def predict_multi_sequence(
     return np.array(predictions_all)
 
 
-def run(energy, T_val, LATENT_DIM_1, BATCH_SIZE, LEARNING_RATE, ALPHA):
+def run_training(energy, T_val, LATENT_DIM_1, BATCH_SIZE, LEARNING_RATE, ALPHA):
 
     from utils import create_evaluation_df, mape
 
-    run = Run.get_context()
-
     train_inputs, valid_inputs, test_inputs, y_scaler = create_input(energy, T_val)
-    validation_mapes_param = np.empty(N_EXPERIMENTS)
-    test_mapes_param = np.empty(N_EXPERIMENTS)
 
-    for ii in range(N_EXPERIMENTS):
+    # Initialize the model
+    train_model, encoder_model, decoder_model = get_model(
+        LEARNING_RATE, T_val, ALPHA, LATENT_DIM_1
+    )
+    earlystop = EarlyStopping(monitor="val_loss", min_delta=0, patience=5)
+    best_val = ModelCheckpoint(
+        "model_{epoch:02d}.h5",
+        save_best_only=True,
+        mode="min",
+        period=1,
+        save_weights_only=True,
+    )
 
-        # Initialize the model
-        train_model, encoder_model, decoder_model = get_model(
-            LEARNING_RATE, T_val, ALPHA, LATENT_DIM_1
-        )
-        earlystop = EarlyStopping(monitor="val_loss", min_delta=0, patience=5)
-        best_val = ModelCheckpoint(
-            "model_{epoch:02d}.h5",
-            save_best_only=True,
-            mode="min",
-            period=1,
-            save_weights_only=True,
-        )
+    train_target = train_inputs["target"].reshape(
+        train_inputs["target"].shape[0], train_inputs["target"].shape[1], 1
+    )
+    valid_target = valid_inputs["target"].reshape(
+        valid_inputs["target"].shape[0], valid_inputs["target"].shape[1], 1
+    )
 
-        train_target = train_inputs["target"].reshape(
-            train_inputs["target"].shape[0], train_inputs["target"].shape[1], 1
-        )
-        valid_target = valid_inputs["target"].reshape(
-            valid_inputs["target"].shape[0], valid_inputs["target"].shape[1], 1
-        )
+    # Train the model
+    history = train_model.fit(
+        [train_inputs["encoder_input"], train_inputs["decoder_input"]],
+        train_target,
+        batch_size=BATCH_SIZE,
+        epochs=EPOCHS,
+        validation_data=(
+            [valid_inputs["encoder_input"], valid_inputs["decoder_input"]],
+            valid_target,
+        ),
+        callbacks=[earlystop, best_val, LogRunMetrics()],
+        verbose=0,
+    )
 
-        # Train the model
-        history = train_model.fit(
-            [train_inputs["encoder_input"], train_inputs["decoder_input"]],
-            train_target,
-            batch_size=BATCH_SIZE,
-            epochs=EPOCHS,
-            validation_data=(
-                [valid_inputs["encoder_input"], valid_inputs["decoder_input"]],
-                valid_target,
-            ),
-            callbacks=[earlystop, best_val],
-            verbose=0,
-        )
+    # load the model with the smallest validation MAPE
+    best_epoch = np.argmin(np.array(history.history["val_loss"])) + 1
+    validationLoss = np.min(np.array(history.history["val_loss"]))
+    train_model.load_weights("model_{:02d}.h5".format(best_epoch))
 
-        # load the model with the smallest validation MAPE
-        best_epoch = np.argmin(np.array(history.history["val_loss"])) + 1
-        validation_mapes_param[ii] = np.min(np.array(history.history["val_loss"]))
-        train_model.load_weights("model_{:02d}.h5".format(best_epoch))
+    # Save best model for this experiment
+    model_name = "bestmodel"
+    # serialize NN architecture to JSON
+    model_json = train_model.to_json()
+    # save model JSON
+    with open("{}.json".format(model_name), "w") as f:
+        f.write(model_json)
+    # save model weights
+    train_model.save_weights("{}.h5".format(model_name))
 
-        # Save best model for this experiment
-        model_name = "bestmodel_exp{}".format(str(ii))
-        # serialize NN architecture to JSON
-        model_json = train_model.to_json()
-        # save model JSON
-        with open("{}.json".format(model_name), "w") as f:
-            f.write(model_json)
-        # save model weights
-        train_model.save_weights("{}.h5".format(model_name))
+    # Compute test MAPE
+    predictions = predict_multi_sequence(
+        encoder_model, decoder_model, test_inputs["encoder_input"], HORIZON, 1
+    )
+    predictions = predictions.reshape(predictions.shape[0], predictions.shape[1])
+    eval_df = create_evaluation_df(predictions, test_inputs, HORIZON, y_scaler)
+    testMAPE = mape(eval_df["prediction"], eval_df["actual"])
 
-        # Compute test MAPE
-        predictions = predict_multi_sequence(
-            encoder_model, decoder_model, test_inputs["encoder_input"], HORIZON, 1
-        )
-        predictions = predictions.reshape(predictions.shape[0], predictions.shape[1])
-        eval_df = create_evaluation_df(predictions, test_inputs, HORIZON, y_scaler)
-        test_mapes_param[ii] = mape(eval_df["prediction"], eval_df["actual"])
+    # clean up model files
+    for m in glob("model_*.h5"):
+        os.remove(m)
 
-        # clean up model files
-        for m in glob("model_*.h5"):
-            os.remove(m)
-
-    # Log a list of validation and test MAPEs from all experiments
-    run.log_list("validation MAPEs", validation_mapes_param)
-    run.log_list("test MAPEs", test_mapes_param)
-
-    # Log average validation and test MAPEs
-    run.log("meanValidationMAPE", np.mean(validation_mapes_param))
-    run.log("meanTestMAPE", np.mean(test_mapes_param))
-
-    # Save the model from the best experiment
-    best_experiment = np.argmin(validation_mapes_param)
+    # Log validation loss and test MAPE
+    run.log("validationLoss", validationLoss)
+    run.log("testMAPE", testMAPE)
 
     # create a ./outputs/model folder in the compute target
     # files saved in the "./outputs" folder are automatically uploaded into run history
     os.makedirs("./outputs/model", exist_ok=True)
-    model_files = glob("bestmodel_exp{}*".format(str(best_experiment)))
+    model_files = glob("bestmodel*")
     for f in model_files:
         shutil.move(f, "./outputs/model")
 
@@ -317,4 +313,4 @@ if __name__ == "__main__":
     ALPHA = float(args.ALPHA)
 
     # train and evaluate RNN teacher forcing neural network with given values of hyperaparameters
-    run(energy, T, LATENT_DIM_1, BATCH_SIZE, LEARNING_RATE, ALPHA)
+    run_training(energy, T, LATENT_DIM_1, BATCH_SIZE, LEARNING_RATE, ALPHA)

@@ -10,7 +10,7 @@ from argparse import ArgumentParser
 from keras import regularizers
 from keras.models import Model, Sequential
 from keras.layers import Dense, CuDNNGRU
-from keras.callbacks import EarlyStopping, ModelCheckpoint
+from keras.callbacks import EarlyStopping, ModelCheckpoint, Callback
 from keras.optimizers import RMSprop
 
 from azureml.core import Run
@@ -22,7 +22,16 @@ test_start_dt = "2014-11-01 00:00:00"
 # fixed parameters
 EPOCHS = 100  # max number of epochs when training FNN
 HORIZON = 24  # forecasting horizon (in hours)
-N_EXPERIMENTS = 1  # number of experiments for each combination of hyperparameter values
+
+# Get the run object
+run = Run.get_context()
+
+class LogRunMetrics(Callback):
+    # callback at the end of every epoch
+    def on_epoch_end(self, epoch, log):
+        # log a value repeated which creates a list
+        run.log('Loss', log['loss'])
+
 
 # create training, validation and test sets given the length of the history
 def create_input(energy, T):
@@ -104,7 +113,7 @@ def get_model(LEARNING_RATE, T, ALPHA, LATENT_DIM_1, LATENT_DIM_2):
     return model
 
 
-def run(
+def run_training(
     energy,
     T_val,
     LATENT_DIM_1,
@@ -113,78 +122,64 @@ def run(
     LEARNING_RATE,
     ALPHA,
 ):
-
     from utils import create_evaluation_df, mape
     
-    run = Run.get_context()
-    
     train_inputs, valid_inputs, test_inputs, y_scaler = create_input(energy, T_val)
-    validation_mapes_param = np.empty(N_EXPERIMENTS)
-    test_mapes_param = np.empty(N_EXPERIMENTS)
 
-    for ii in range(N_EXPERIMENTS):
+    # Initialize the model
+    model = get_model(LEARNING_RATE, T_val, ALPHA, LATENT_DIM_1, LATENT_DIM_2)
+    earlystop = EarlyStopping(monitor="val_loss", min_delta=0, patience=5)
+    best_val = ModelCheckpoint(
+        "model_{epoch:02d}.h5",
+        save_best_only=True,
+        mode="min",
+        period=1,
+        save_weights_only=True,
+    )
 
-        # Initialize the model
-        model = get_model(LEARNING_RATE, T_val, ALPHA, LATENT_DIM_1, LATENT_DIM_2)
-        earlystop = EarlyStopping(monitor="val_loss", min_delta=0, patience=5)
-        best_val = ModelCheckpoint(
-            "model_{epoch:02d}.h5",
-            save_best_only=True,
-            mode="min",
-            period=1,
-            save_weights_only=True,
-        )
+    # Train the model
+    history = model.fit(
+        train_inputs["X"],
+        train_inputs["target"],
+        batch_size=BATCH_SIZE,
+        epochs=EPOCHS,
+        validation_data=(valid_inputs["X"], valid_inputs["target"]),
+        callbacks=[earlystop, best_val, LogRunMetrics()],
+        verbose=0,
+    )
 
-        # Train the model
-        history = model.fit(
-            train_inputs["X"],
-            train_inputs["target"],
-            batch_size=BATCH_SIZE,
-            epochs=EPOCHS,
-            validation_data=(valid_inputs["X"], valid_inputs["target"]),
-            callbacks=[earlystop, best_val],
-            verbose=0,
-        )
+    # load the model with the smallest validation MAPE
+    best_epoch = np.argmin(np.array(history.history["val_loss"])) + 1
+    validationLoss = np.min(np.array(history.history["val_loss"]))
+    model.load_weights("model_{:02d}.h5".format(best_epoch))
 
-        # load the model with the smallest validation MAPE
-        best_epoch = np.argmin(np.array(history.history["val_loss"])) + 1
-        validation_mapes_param[ii] = np.min(np.array(history.history["val_loss"]))
-        model.load_weights("model_{:02d}.h5".format(best_epoch))
-
-        # Save best model for this experiment
-        model_name = "bestmodel_exp{}".format(str(ii))
-        # serialize NN architecture to JSON
-        model_json = model.to_json()
-        # save model JSON
-        with open("{}.json".format(model_name), "w") as f:
-            f.write(model_json)
-        # save model weights
-        model.save_weights("{}.h5".format(model_name))
-        
-        # Compute test MAPE
-        predictions = model.predict(test_inputs["X"])
-        eval_df = create_evaluation_df(predictions, test_inputs, HORIZON, y_scaler)
-        test_mapes_param[ii] = mape(eval_df["prediction"], eval_df["actual"])
-
-        # clean up model files
-        for m in glob("model_*.h5"):
-            os.remove(m)
+    # Save best model for this experiment
+    model_name = "bestmodel"
+    # serialize NN architecture to JSON
+    model_json = model.to_json()
+    # save model JSON
+    with open("{}.json".format(model_name), "w") as f:
+        f.write(model_json)
+    # save model weights
+    model.save_weights("{}.h5".format(model_name))
     
-    # Log a list of validation and test MAPEs from all experiments
-    run.log_list("validation MAPEs", validation_mapes_param)
-    run.log_list("test MAPEs", test_mapes_param)
+    # Compute test MAPE
+    predictions = model.predict(test_inputs["X"])
+    eval_df = create_evaluation_df(predictions, test_inputs, HORIZON, y_scaler)
+    testMAPE = mape(eval_df["prediction"], eval_df["actual"])
+
+    # clean up model files
+    for m in glob("model_*.h5"):
+        os.remove(m)
     
-    # Log average validation and test MAPEs
-    run.log("meanValidationMAPE", np.mean(validation_mapes_param))
-    run.log("meanTestMAPE", np.mean(test_mapes_param))
-    
-    # Save the model from the best experiment
-    best_experiment = np.argmin(validation_mapes_param)
+    # Log validation loss and test MAPE
+    run.log("validationLoss", validationLoss)
+    run.log("testMAPE", testMAPE)
     
     # create a ./outputs/model folder in the compute target
     # files saved in the "./outputs" folder are automatically uploaded into run history
     os.makedirs("./outputs/model", exist_ok=True)
-    model_files = glob("bestmodel_exp{}*".format(str(best_experiment)))
+    model_files = glob("bestmodel*")
     for f in model_files:
         shutil.move(f, "./outputs/model")
 
@@ -264,4 +259,4 @@ if __name__ == "__main__":
     ALPHA = float(args.ALPHA)
     
     # train and evaluate RNN multi-step network with given values of hyperaparameters
-    run(energy, T, LATENT_DIM_1, LATENT_DIM_2, BATCH_SIZE, LEARNING_RATE, ALPHA)
+    run_training(energy, T, LATENT_DIM_1, LATENT_DIM_2, BATCH_SIZE, LEARNING_RATE, ALPHA)
