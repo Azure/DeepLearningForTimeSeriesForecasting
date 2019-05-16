@@ -15,8 +15,8 @@
         "--latent-dim": [5,10,15],
         "--hidden-layers": [1,2,3],
         "--batch-size": [8,16,32],
-        "--T": [72,168,336],
-        "--learning-rate": [0.01, 0.001, 0.0001],
+        "--T": [72, 168, 336],
+        "--learning-rate": [0.01,0.001,0.0001],
         "--alpha": [0.1,0.001,0]
     },
     "MODEL_NAME":"ff-multistep-best"
