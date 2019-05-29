@@ -1,13 +1,13 @@
-# Recurrent Neural Networks for Time Series Forecasting
+# Deep Neural Networks for Time Series Forecasting
 
-A collection of examples for using RNNs for time series forecasting with Keras. The examples include:
+A collection of examples for using DNNs for time series forecasting with Keras. The examples include:
 
 - **0_data_setup.ipynb** - set up data that are needed for the experiments
-- **1_time_series_arima.ipynb** - ARIMA model for time series forecasting
-- **2_one_step_FF_univariate.ipynb** - feed forward neural network model that predicts one step ahead with univariate time series
-- **3_one_step_RNN_univariate.ipynb** - recurrent neural network model that predicts one step ahead with univariate time series
-- **4_multi_step_RNN_vector_output.ipynb** - recurrent neural network model that outputs a vector of predictions to forecast multiple steps ahead
-- **5_multi_step_RNN_encoder_decoder_simple.ipynb** - a simple recurrent neural network encoder-decoder approach to multi-step forecasting
+- **1_CNN_dilated.ipynb** - feed forward neural network model that predicts one step ahead with univariate time series
+- **2_RNN.ipynb** - recurrent neural network model that predicts one step ahead with univariate time series
+- **3_RNN_encoder_decoder.ipynb** - a simple recurrent neural network encoder-decoder approach to multi-step forecasting
+
+... and a number of hands-on exercises and demos.
 
 
 ## Data
@@ -39,7 +39,7 @@ Microsoft Azure Notebooks is a free service that provides Jupyter Notebooks in c
 The following steps will guide you to setup code and data in your Azure Notebook environment for the tutorial. Note: the code repository will be open one week before the conference, please do this setup after October 1st, 2018.
 
 1. Once you are logged in to Azure Notebooks, go to '***Libraries***' on the top left, and then click '**_+ New Library_**'.
-2. In the pop out window, select '***From GitHub***' tab, and in '***GitHub repository***' type in: '***Azure/RNNForTimeSeriesForecasting***'. Then type in any name you prefer for '***Library Name***' and '***Library ID***'. Once you have filled in all boxes, click '***Import***'. Wait till you see a list of files cloned from git repository to your library.
+2. In the pop out window, select '***From GitHub***' tab, and in '***GitHub repository***' type in: '***Azure/DeepLearningForTimeSeriesForecasting***'. Then type in any name you prefer for '***Library Name***' and '***Library ID***'. Once you have filled in all boxes, click '***Import***'. Wait till you see a list of files cloned from git repository to your library.
 3. Now let's set up your notebook environment. Click on '***Settings***'. In the pop-out window choose '***Environment***' tab, then select '**_+ Add_**'. Click on the drop-down menu '***Select Operation***' and choose '***Requirements.txt***'. For '***Select Target File***' choose '***Requirements.txt***'. For '***Select Python Version***' choose '***Python Version 3***'. Lastly click on '***Save***'.
 4. When you are back to your library, click on '***0_data_setup.ipynb***'. It will take about 2 minutes for the Azure Notebooks to set up your environment. Please wait for 2 mintues before you run the notebook.
 5. Make sure you see '***Python 3***' kernel on the top right. If not, you can select '***Kernel***', then '***Change kernel***' to make changes.
