@@ -20,6 +20,7 @@ The data in all examples is from the GEFCom2014 energy forecasting competition<s
 ## Prerequisites
 
 - Know the basics of Python
+- Know the basics of neural networks
 - Understand the basic concepts of machine learning and have some experience in building machine learning models
 - Go through the following setup instructions to run notebooks on Azure Notebooks environment
 
