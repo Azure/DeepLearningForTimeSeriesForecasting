@@ -1,4 +1,4 @@
-# Deep Neural Networks for Time Series Forecasting
+# Deep Learning for Time Series Forecasting
 
 A collection of examples for using DNNs for time series forecasting with Keras. The examples include:
 
