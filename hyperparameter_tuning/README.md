@@ -24,12 +24,13 @@ The hyper-parameters of methods presented in this tutorial are tuned using Hyper
 ### Run hyper-parameter tuning notebook
 
 Hyper-parameter tuning is done in [hyperparameter_tuning.ipynb](./hyperparameter_tuning.ipynb) notebook. This notebook is used to tune several approaches:
-- Feed-forward network multi-step multivariate approach - [ff_multistep_config.json](ff_multistep_config.json)
-- RNN multi-step approach - [rnn_multistep_config.json](rnn_multistep_config.json)
-- RNN teacher forcing approach - [rnn_teacher_forcing_config.json](rnn_teacher_forcing_config.json)
-- RNN encoder decoder approach - [rnn_encoder_decoder_config.json](rnn_encoder_decoder_config.json)
+- Feed-forward network multi-step multivariate - [ff_multistep_config.json](ff_multistep_config.json)
+- RNN multi-step - [rnn_multistep_config.json](rnn_multistep_config.json)
+- RNN teacher forcing - [rnn_teacher_forcing_config.json](rnn_teacher_forcing_config.json)
+- RNN encoder decoder - [rnn_encoder_decoder_config.json](rnn_encoder_decoder_config.json)
+- CNN - [cnn_config.json](cnn_config.json)
 
 Each of these use cases is defined in a json configuration file listed above alongside each usecase. To run a specific approach, please specify the appropriate configuration file in the hyperparameter_tuning notebook.
 
 
-The running time depends on the size of your Azure ML cluster and the method being tuned.
+The running time depends on the size of your Azure ML cluster and the model being tuned.
