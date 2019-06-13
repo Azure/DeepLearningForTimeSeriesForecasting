@@ -1,0 +1,27 @@
+{
+    "EXPERIMENT_NAME":"rnn-encoder-decoder",
+    "CLUSTER_NAME":"gpucluster",
+    "SCRIPT_DIR":"./RNN_encoder_decoder_simple",
+    "SCRIPT_NAME":"RNN_multi_step_encoder_decoder_simple.py",
+    "SCRIPT_PARAMS":{
+        "--encoder-dim-1":5,
+        "--encoder-dim-2":0,
+        "--decoder-dim-1":5,
+        "--decoder-dim-2":0,
+        "--batch-size":32,
+        "--T":72,
+        "--learning-rate":0.01,
+        "--alpha":0
+    },
+    "HYPER_PARAMS":{
+        "--encoder-dim-1":[5,10,15],
+        "--encoder-dim-2":[0,5,10],
+        "--decoder-dim-1":[5,10,15],
+        "--decoder-dim-2":[0,5,10],
+        "--batch-size":[16,32],
+        "--T":[72,168,336],
+        "--learning-rate":[0.01, 0.001, 0.0001],
+        "--alpha":[0.1,0.001,0]
+    },
+    "MODEL_NAME":"rnn-encdec-best"
+}

@@ -1,0 +1,30 @@
+# To create the conda environment:
+# $ conda env create -f environment.yaml
+# 
+# To update the conda environment:
+# $ conda env update -f environment.yaml
+# 
+# To register the conda environment in Jupyter:
+# $ conda activate dnntutorial
+# $ python -m ipykernel install --user --name dnntutorial
+
+name: dnntutorial
+channels:
+  - conda-forge
+dependencies:
+# requires
+- python=3.6.2
+- ipykernel>=4.6.1
+- jupyter>=1.0.0
+- pip:
+  - azureml-sdk==1.0.39
+  - azureml-widgets
+  - keras
+  - numpy==1.16.3
+  - pandas==0.19.2
+  - tensorflow>=1.6.0
+  - matplotlib==2.1.1
+  - scikit-learn==0.19.1
+  - pyramid-arima==0.8.1
+  - statsmodels==0.9.0
+  - xlrd

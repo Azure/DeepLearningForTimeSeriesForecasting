@@ -1,0 +1,21 @@
+{
+    "EXPERIMENT_NAME":"rnn-teacher-forcing",
+    "CLUSTER_NAME":"gpucluster",
+    "SCRIPT_DIR":"./RNN_teacher_forcing",
+    "SCRIPT_NAME":"RNN_teacher_forcing.py",
+    "SCRIPT_PARAMS":{
+        "--latent-dim-1": 5,
+        "--batch-size": 32,
+        "--T": 72,
+        "--learning-rate": 0.01,
+        "--alpha": 0
+    },
+    "HYPER_PARAMS":{
+        "--latent-dim-1": [5,10,15],
+        "--batch-size": [16,32],
+        "--T": [72, 168, 336],
+        "--learning-rate": [0.01, 0.001, 0.0001],
+        "--alpha": [0.1,0.001,0]
+    },
+    "MODEL_NAME":"rnn-teacher-forcing-best"
+}
