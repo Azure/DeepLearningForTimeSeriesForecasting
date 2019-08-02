@@ -3,9 +3,10 @@
 A collection of examples for using DNNs for time series forecasting with Keras. The examples include:
 
 - **0_data_setup.ipynb** - set up data that are needed for the experiments
-- **1_CNN_dilated.ipynb** - feed forward neural network model that predicts one step ahead with univariate time series
+- **1_CNN_dilated.ipynb** - dilated convolutional neural network model that predicts one step ahead with univariate time series
 - **2_RNN.ipynb** - recurrent neural network model that predicts one step ahead with univariate time series
 - **3_RNN_encoder_decoder.ipynb** - a simple recurrent neural network encoder-decoder approach to multi-step forecasting
+- **4_ES_RNN.ipynb** - a simplified exponential smoothing recurrent neural network model that predicts one step ahead with univariate time series
 
 ... and a number of hands-on exercises and demos.
 
