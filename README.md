@@ -3,9 +3,10 @@
 A collection of examples for using DNNs for time series forecasting with Keras. The examples include:
 
 - **0_data_setup.ipynb** - set up data that are needed for the experiments
-- **1_CNN_dilated.ipynb** - feed forward neural network model that predicts one step ahead with univariate time series
+- **1_CNN_dilated.ipynb** - dilated convolutional neural network model that predicts one step ahead with univariate time series
 - **2_RNN.ipynb** - recurrent neural network model that predicts one step ahead with univariate time series
 - **3_RNN_encoder_decoder.ipynb** - a simple recurrent neural network encoder-decoder approach to multi-step forecasting
+- **4_ES_RNN.ipynb** - a simplified exponential smoothing recurrent neural network model that predicts one step ahead with univariate time series
 
 ... and a number of hands-on exercises and demos.
 
@@ -35,13 +36,16 @@ Microsoft Azure Notebooks is a free service that provides Jupyter Notebooks in c
 3. If this is the first time you use Azure Notebook, you will need to create a user ID and click '***Save***'. Now you are all set!
 
 
-### Tutorial Code and Data Setup (5 Minutes)
+### Tutorial Code and Data Setup (5 - 10 Minutes)
 
-The following steps will guide you to setup code and data in your Azure Notebook environment for the tutorial. Note: the code repository will be open one week before the conference, please do this setup after October 1st, 2018.
+The following steps will guide you to setup code and data in your Azure Notebook environment for the tutorial.
 
-1. Once you are logged in to Azure Notebooks, go to '***My Projects***' on the top left, and then click '***Upload GitHub Repo***'.
-2. In the pop out window, for '***GitHub repository***' type in: '***Azure/DeepLearningForTimeSeriesForecasting***'. Select '***Clone recursively***'. Then type in any name you prefer for '***Project Name***' and '***Project ID***'. Once you have filled all boxes, click '***Import***'. Wait till you see a list of files cloned from git repository to your project.
-3. Now let's set up your notebook environment. Click on '***Project Settings***'. In the pop-out window choose '***Environment***' tab, then select '**_+ Add_**'. Click on the drop-down menu '***Select Operation***' and choose '***Requirements.txt***'. For '***Select Target File***' choose '***Requirements.txt***'. For '***Select Python Version***' choose '***Python Version 3***'. Lastly click on '***Save***'.
-4. When you are back to your project, click on '***0_data_setup.ipynb***'. It will take about 2 minutes for the Azure Notebooks to set up your environment. Please wait for 2 mintues before you run the notebook.
-5. Make sure you see '***Python 3***' kernel on the top right. If not, you can select '***Kernel***', then '***Change kernel***' to make changes.
-6. Run each cell in the notebook by click '***Run***' on top. This notebook will download a sample data to your environment and visualize the data. Wait and make sure you can see all the visualizations. Now you are all set! (*Note: If you see errors return from the first code cell, it is very likely that the environment preparation is not finished yet. Please wait for 2 minutes and then go to '***Kernel***', choose '***Restart and Clear Output***' and rerun the cells.*) 
+1. Once you are logged into Azure Notebooks, go to '***My Projects***' on the top left, and then click '***Upload GitHub Repo***'.
+
+2. In the pop out window, for '***GitHub repository***' type in: '***Azure/DeepLearningForTimeSeriesForecasting***'. Select '***Clone recursively***'. Then type in any name you prefer for '***Project Name***' and '***Project ID***'. Once you have filled all boxes, click '***Import***'. Please wait till you see a list of files cloned from git repository to your project.
+
+3. Open the notebook '***0_data_setup.ipynb***'. Make sure you see '***Python 3.6***' kernel on the top right. If not, you can select '***Kernel***', then '***Change kernel***' to make changes.
+
+4. Run each cell in the notebook by click '***Run***' on top. If you prefer to run all the cells together, click '***Cell***' and select '***Run All***'. This notebook will download a sample dataset to your environment and visualize the data. Please wait and make sure you can see all the visualizations. 
+
+Now you are all set! (*Note: If you see errors return from the first code cell, it is very likely that the environment preparation is not finished yet. Please wait for 2 minutes and then go to '***Kernel***', choose '***Restart and Clear Output***' and rerun the cells.*) 
