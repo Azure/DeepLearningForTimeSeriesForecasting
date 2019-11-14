@@ -1,0 +1,2 @@
+azureml-core==1.0.74
+azureml-sdk[explain,automl]
