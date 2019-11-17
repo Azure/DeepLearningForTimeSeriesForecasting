@@ -44,7 +44,6 @@ def extract_data(data_dir):
     data = data[data.timestamp >= '2012-01-01']
 
     # save to csv
-    pd.DataFrame.to_csv()
     data.to_csv(
         os.path.join(data_dir, 'energy.csv.gz'),
         compression="gzip",
