@@ -42,7 +42,7 @@ The following steps will guide you to setup code and data in your Azure Notebook
 
 1. Once you are logged into Azure Notebooks, go to '***My Projects***' on the top left, and then click '***Upload GitHub Repo***'.
 
-2. In the pop out window, for '***GitHub repository***' type in: '***Azure/DeepLearningForTimeSeriesForecasting***'. Select '***Clone recursively***'. Then type in any name you prefer for '***Project Name***' and '***Project ID***'. Once you have filled all boxes, click '***Import***'. Please wait till you see a list of files cloned from git repository to your project.
+2. In the pop out window, for '***GitHub repository***' type in: '***jspoelstra/DeepLearningForTimeSeriesForecasting***'. Select '***Clone recursively***'. Then type in any name you prefer for '***Project Name***' and '***Project ID***'. Once you have filled all boxes, click '***Import***'. Please wait till you see a list of files cloned from git repository to your project.
 
 3. Open the notebook '***0_data_setup.ipynb***'. Make sure you see '***Python 3.6***' kernel on the top right. If not, you can select '***Kernel***', then '***Change kernel***' to make changes.
 
