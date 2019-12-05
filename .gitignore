@@ -71,6 +71,7 @@ target/
 
 # Jupyter Notebook
 .ipynb_checkpoints
+Untitled.ipynb
 
 # pyenv
 .python-version
@@ -106,3 +107,13 @@ venv.bak/
 data/*
 hyperparameter_tuning/.azureml/*
 outputs/*
+
+# AzureML
+.azureml/
+*.pkl
+config.json
+*.log*
+.DS_Store
+
+# VSCode
+.vscode/
