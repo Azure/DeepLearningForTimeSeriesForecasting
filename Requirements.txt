@@ -1,8 +1,11 @@
-keras==2.2.4
+keras==2.2.5
 numpy==1.16.2
 pandas==0.23.4
-tensorflow==1.12.0
-matplotlib==3.0.0
+tensorflow==1.15.0
+matplotlib==3.1.1
 scikit-learn==0.20.3
-pyramid-arima==0.8.1
+#pyramid-arima==0.8.1
 statsmodels==0.9.0
+xlrd==1.2.0
+pyarrow==0.11.1
+
